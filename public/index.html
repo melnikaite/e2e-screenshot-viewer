@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Test Compare</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <main id="app"></main>
+
+  <!-- Templates -->
+  <template id="builds-template">
+    <header>
+      <h1>Test Compare</h1>
+    </header>
+    <section>
+      <h2>Builds</h2>
+      <ul id="builds"></ul>
+    </section>
+  </template>
+
+  <template id="build-item-template">
+    <li>
+      <a href="" class="build-link"></a>
+      <span class="delete-build">🗑️</span>
+    </li>
+  </template>
+
+  <template id="tests-template">
+    <header>
+      <h1>Test Compare - <span class="build-name"></span></h1>
+      <div class="navigation"></div>
+    </header>
+    <section>
+      <h2>Tests for <span class="build-name"></span></h2>
+      <ul id="tests"></ul>
+    </section>
+  </template>
+
+  <template id="comparison-template">
+    <header>
+      <h1>Test Compare - <span class="build-name"></span> - <span class="test-name"></span></h1>
+      <div class="navigation"></div>
+      <div class="test-navigation"></div>
+    </header>
+    <section class="carousel-container">
+      <div class="carousel" id="approved"></div>
+      <div class="carousel" id="current"></div>
+      <footer class="carousel-controls">
+        <button class="prev-button">❮</button>
+        <button id="approve-button">Approve This Test</button>
+        <button class="next-button">❯</button>
+      </footer>
+    </section>
+  </template>
+
+  <template id="error-template">
+    <section class="error-message">
+      <h2>Error</h2>
+      <p class="error-text"></p>
+      <button class="return-home">Return to Home</button>
+    </section>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
