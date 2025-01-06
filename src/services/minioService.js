@@ -79,6 +79,12 @@ const getObjectStream = async (objectPath) => {
   return await client.getObject(BUCKET_NAME, objectPath);
 };
 
+const getObjectBuffer = async (objectPath) => {
+  const stream = await getObjectStream(objectPath);
+  const chunks = await stream.toArray();
+  return Buffer.concat(chunks);
+};
+
 const uploadObject = async (path, buffer, contentType) => {
   const client = getMinioClient();
   await client.putObject(
@@ -96,6 +102,7 @@ export {
   moveToApproved,
   deleteObject,
   getObjectStream,
+  getObjectBuffer,
   uploadObject,
   getMinioClient
 };

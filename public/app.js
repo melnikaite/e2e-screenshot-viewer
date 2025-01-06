@@ -171,9 +171,9 @@ async function showComparisonPage(build, test) {
     content.querySelector('.test-name').textContent = test;
 
     // Add build navigation
-    const nav = content.querySelector('.navigation');
+    const buildNav = content.querySelector('.build-nav');
     const currentBuildIndex = builds.indexOf(build);
-    nav.innerHTML = `
+    buildNav.innerHTML = `
         ${currentBuildIndex > 0 ?
             `<a href="#/builds/${builds[currentBuildIndex - 1]}" onclick="navigate(event)">← Previous Build</a>` :
             '<span class="disabled">← Previous Build</span>'}
@@ -184,7 +184,7 @@ async function showComparisonPage(build, test) {
     `;
 
     // Add test navigation
-    const testNav = content.querySelector('.test-navigation');
+    const testNav = content.querySelector('.test-nav');
     const currentTestIndex = tests.indexOf(test);
     testNav.innerHTML = `
         ${currentTestIndex > 0 ?
@@ -200,27 +200,39 @@ async function showComparisonPage(build, test) {
     const approvedCarousel = content.querySelector('#approved');
     const currentCarousel = content.querySelector('#current');
 
-    approvedScreenshots.forEach(({ name }) => {
+    approvedScreenshots.forEach(({ name }, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'image-wrapper';
+
         const img = document.createElement('img');
         img.src = `/api/builds/screenshot?path=${encodeURIComponent(`approved/${test}/${name}`)}`;
-        approvedCarousel.appendChild(img);
+        if (index === 0) img.classList.add('active');
+
+        wrapper.appendChild(img);
+        approvedCarousel.appendChild(wrapper);
     });
 
-    buildScreenshots.forEach(({ name }) => {
+    buildScreenshots.forEach(({ name }, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'image-wrapper';
+
         const img = document.createElement('img');
         img.src = `/api/builds/screenshot?path=${encodeURIComponent(`builds/${build}/${test}/${name}`)}`;
-        currentCarousel.appendChild(img);
+        if (index === 0) img.classList.add('active');
+
+        wrapper.appendChild(img);
+        currentCarousel.appendChild(wrapper);
     });
 
     // Add carousel navigation handlers
-    const prevButton = content.querySelector('.prev-button');
-    const nextButton = content.querySelector('.next-button');
+    const prevButton = content.querySelector('.prev');
+    const nextButton = content.querySelector('.next');
 
     prevButton.addEventListener('click', () => scrollBothCarousels(-1));
     nextButton.addEventListener('click', () => scrollBothCarousels(1));
 
     // Check if test is already approved
-    const approveButton = content.querySelector('#approve-button');
+    const approveButton = content.querySelector('.approve');
     if (approvedScreenshots.length > 0 &&
         buildScreenshots.every(build =>
             approvedScreenshots.some(approved =>
@@ -248,10 +260,144 @@ function scrollBothCarousels(direction) {
     const current = document.getElementById('current');
     const scrollAmount = approved.clientWidth;
 
+    // Clear highlights and reset button
+    const highlightButton = document.querySelector('.highlight');
+    const highlights = document.querySelectorAll('.diff-highlight, .diff-tooltip');
+    highlights.forEach(el => el.remove());
+    highlightButton.style.display = 'inline-block';
+    highlightButton.disabled = false;
+
+    // Update active class
+    const updateActiveImage = (carousel) => {
+        const images = carousel.querySelectorAll('img');
+        const activeImage = carousel.querySelector('img.active');
+        const currentIndex = Array.from(images).indexOf(activeImage);
+        const newIndex = (currentIndex + direction + images.length) % images.length;
+
+        activeImage.classList.remove('active');
+        images[newIndex].classList.add('active');
+    };
+
     approved.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
     current.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+
+    updateActiveImage(approved);
+    updateActiveImage(current);
 }
 
 // Initialize router
 window.addEventListener('hashchange', handleRoute);
 handleRoute();
+
+function showComparison(buildId, testName) {
+    // ... existing code ...
+}
+
+async function handleHighlightDiff(button, loader) {
+    if (button.disabled) return;
+
+    button.disabled = true;
+    button.style.display = 'none';
+    loader.style.display = 'inline-block';
+
+    try {
+        const [currentImage, approvedImage] = getActiveImages();
+        const result = await compareImages(currentImage.src, approvedImage.src);
+
+        // Add highlight rectangles
+        [currentImage, approvedImage].forEach(img => {
+            const carousel = img.closest('.carousel');
+
+            // Calculate scale factors
+            const scaleX = img.clientWidth / img.naturalWidth;
+            const scaleY = img.clientHeight / img.naturalHeight;
+
+            result.regions.forEach(region => {
+                const highlight = document.createElement('div');
+                highlight.className = 'diff-highlight';
+                highlight.dataset.severity = region.severity;
+
+                // Scale the coordinates
+                const scaledX = region.x * scaleX;
+                const scaledY = region.y * scaleY;
+                const scaledWidth = region.width * scaleX;
+                const scaledHeight = region.height * scaleY;
+
+                // Position the highlight relative to wrapper
+                highlight.style.left = `${scaledX}px`;
+                highlight.style.top = `${scaledY}px`;
+                highlight.style.width = `${scaledWidth}px`;
+                highlight.style.height = `${scaledHeight}px`;
+
+                // Create tooltip
+                const tooltip = document.createElement('div');
+                tooltip.className = 'diff-tooltip';
+                tooltip.innerHTML = `
+                    <strong>${region.description || 'No details'}</strong>
+                    <br>Severity: ${region.severity || 'unknown'}
+                `;
+
+                // Add hover events
+                highlight.addEventListener('mouseenter', () => {
+                    tooltip.style.display = 'block';
+                });
+                highlight.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                });
+
+                // Update tooltip position on mousemove
+                highlight.addEventListener('mousemove', (e) => {
+                    const rect = highlight.getBoundingClientRect();
+                    tooltip.style.left = `${e.offsetX + 10}px`;
+                    tooltip.style.top = `${e.offsetY + 10}px`;
+                });
+
+                // Update tooltip styles
+                tooltip.style.position = 'absolute';
+                tooltip.style.whiteSpace = 'nowrap';  // Prevent text wrapping
+
+                // Add tooltip to highlight instead of wrapper
+                const wrapper = img.parentElement;
+                wrapper.appendChild(highlight);
+                highlight.appendChild(tooltip);
+            });
+        });
+
+    } catch (error) {
+        console.error('Error highlighting differences:', error);
+        alert('Failed to highlight differences: ' + error.message);
+        button.disabled = false;
+    } finally {
+        loader.style.display = 'none';
+    }
+}
+
+function getActiveImages() {
+    const currentImage = document.querySelector('#current img.active');
+    const approvedImage = document.querySelector('#approved img.active');
+
+    if (!currentImage || !approvedImage) {
+        throw new Error('Images not found');
+    }
+
+    return [currentImage, approvedImage];
+}
+
+async function compareImages(image1Url, image2Url) {
+    // Get only the path part from the query parameter
+    const getMinioPath = (url) => decodeURIComponent(new URL(url).searchParams.get('path'));
+
+    const response = await fetch('/api/builds/compare-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            image1Url: getMinioPath(image1Url),
+            image2Url: getMinioPath(image2Url)
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+
+    return data;
+}

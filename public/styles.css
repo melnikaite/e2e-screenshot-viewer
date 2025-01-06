@@ -1,62 +1,177 @@
-/* Variables */
 :root {
-  --primary: #007bff;
-  --border: #ccc;
   --gap: 1rem;
-  --radius: 4px;
+  --header-height: 120px;
+  --controls-height: 60px;
+  --labels-height: 40px;
+  --button-height: 36px;
+  --spinner-size: 24px;
+  --primary-color: #4CAF50;
+  --primary-hover: #45a049;
 }
 
-/* Base */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: var(--gap);
-}
-
-/* Layout */
+/* Layout - Header */
 header {
-  margin-bottom: var(--gap);
+  height: var(--header-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
 }
 
-nav {
+h1 {
+  margin: 0;
+}
+
+.build-nav,
+.test-nav {
   margin: calc(var(--gap) / 2) 0;
 }
 
-/* Carousel */
-.carousel-container {
-  max-width: 1200px;
-  margin: 0 auto;
+.build-nav a,
+.test-nav a {
+  margin: 0 10px;
+}
+
+/* Labels */
+.compare-labels {
+  height: var(--labels-height);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--gap);
 }
 
+.compare-labels div {
+  font-weight: bold;
+  padding: 8px;
+  background: #f5f5f5;
+  border-bottom: 1px solid var(--border);
+  color: #333;
+}
+
+.compare-labels div:first-child {
+  text-align: right;
+}
+
+/* Main Content */
+.compare-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+.compare-content .carousel:first-child {
+  justify-content: flex-end;
+}
+
 .carousel {
-  overflow: hidden;
   display: flex;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  justify-content: flex-start;
+  position: relative;
 }
 
 .carousel img {
-  width: 100%;
-  flex: 0 0 100%;
+  max-width: 100%;
+  max-height: calc(100vh - var(--header-height) - var(--labels-height) - var(--controls-height) - var(--gap) * 3);
+  display: none;
 }
 
-.carousel-controls {
+.carousel img.active {
+  display: block;
+}
+
+/* Controls */
+.compare-controls {
+  height: var(--controls-height);
   display: flex;
   gap: var(--gap);
   justify-content: center;
-  grid-column: 1 / -1;
+  align-items: center;
 }
 
 button {
+  height: var(--button-height);
   padding: calc(var(--gap) / 2) var(--gap);
   color: white;
-  background: var(--primary);
+  background-color: var(--primary-color);
   border: none;
-  border-radius: var(--radius);
+  border-radius: 4px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button:hover {
+  background-color: var(--primary-hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.approve,
+.highlight {
+  width: 180px;
+}
+
+.highlight:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+#loader {
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: none;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Diff highlights */
+.diff-highlight {
+  position: absolute;
+  border: 2px solid red;
+  cursor: help;
+}
+
+.diff-highlight[data-severity="critical"] {
+  border-style: solid;
+  border-color: #ff0000;
+}
+
+.diff-highlight[data-severity="minor"] {
+  border-style: dashed;
+  border-color: #ffa500;
+}
+
+.diff-highlight[data-severity="visual"] {
+  border-style: dotted;
+  border-color: #ffff00;
+}
+
+.diff-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 100;
+  display: none;
+  pointer-events: none;
 }
 
 /* Lists */
@@ -73,18 +188,35 @@ li {
   margin-bottom: calc(var(--gap) / 2);
 }
 
+.delete-build {
+  cursor: pointer;
+}
+
 /* Utils */
-.loader,
 .error-message {
   text-align: center;
   padding: var(--gap);
 }
 
-.delete-build {
-  cursor: pointer;
+.image-wrapper {
+  position: relative;
+  display: inline-block;
+  /* Size will match content */
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: default;
+.image-wrapper img {
+  max-width: 100%;
+  max-height: calc(100vh - var(--header-height) - var(--labels-height) - var(--controls-height) - var(--gap) * 3);
+  display: none;
+}
+
+.image-wrapper img.active {
+  display: block;
+}
+
+/* Update highlight positioning relative to wrapper */
+.diff-highlight {
+  position: absolute;
+  border: 2px solid red;
+  cursor: help;
 }

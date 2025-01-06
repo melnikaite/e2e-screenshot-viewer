@@ -40,20 +40,43 @@
   </template>
 
   <template id="comparison-template">
+    <!-- Top section -->
     <header>
       <h1>Test Compare - <span class="build-name"></span> - <span class="test-name"></span></h1>
-      <div class="navigation"></div>
-      <div class="test-navigation"></div>
+      <nav class="build-nav">
+        <a href="#/builds/prev">← Previous Build</a>
+        <a href="#/builds">All Builds</a>
+        <a href="#/builds/next">Next Build →</a>
+      </nav>
+      <nav class="test-nav">
+        <a href="#/tests/prev">← Previous Test</a>
+        <a href="#/tests">All Tests</a>
+        <a href="#/tests/next">Next Test →</a>
+      </nav>
     </header>
-    <section class="carousel-container">
-      <div class="carousel" id="approved"></div>
+
+    <!-- Labels -->
+    <nav class="compare-labels">
+      <div>Actual (Current Build)</div>
+      <div>Baseline (Approved Version)</div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="compare-content">
       <div class="carousel" id="current"></div>
-      <footer class="carousel-controls">
-        <button class="prev-button">❮</button>
-        <button id="approve-button">Approve This Test</button>
-        <button class="next-button">❯</button>
-      </footer>
-    </section>
+      <div class="carousel" id="approved"></div>
+    </main>
+
+    <!-- Bottom controls -->
+    <nav class="compare-controls">
+      <button class="prev">❮</button>
+      <button class="approve">Approve This Test</button>
+      <button class="highlight" onclick="handleHighlightDiff(this, document.getElementById('loader'))">
+        Highlight Differences
+      </button>
+      <div id="loader"></div>
+      <button class="next">❯</button>
+    </nav>
   </template>
 
   <template id="error-template">

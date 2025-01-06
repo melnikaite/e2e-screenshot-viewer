@@ -7,15 +7,16 @@ A simple app to view and approve screenshots for your E2E tests.
 2. Log in using basic authentication, find initial credentials in .env
 3. Browse screenshots by builds and tests
 4. Use carousels to compare current screenshots with baselines
-5. Approve changes
+5. Use "Highlight Differences" button to see visual differences between images
+6. Approve changes if needed
 
 ![](image.png)
 
 ## How to Use
 
 ### On your server
-1. Copy `.env` and `docker-compose.yml` files from the repository
-2. Set valid credentials and ports
+1. Copy `.env.example` to `.env` and `docker-compose.yml` files from the repository
+2. Set valid credentials, ports and OpenAI API key if you want to use difference highlighting feature
 3. Launch the application:
 
 ```bash
@@ -24,6 +25,11 @@ docker compose up
 
 ### In E2E Tests
 1. Upload screenshots using the HTTP API:
+
+> **Note**: The difference highlighting feature supports the following image sizes:
+> - 256x256
+> - 512x512
+> - 1024x1024
 
 ```bash
 # Successful test example
